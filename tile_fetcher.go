@@ -20,6 +20,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
 var errTileNotFound = errors.New("error 404: tile not found")
@@ -140,6 +141,18 @@ func (t *TileFetcher) download(url string) ([]byte, error) {
 }
 
 func (t *TileFetcher) loadCache(fileName string) (image.Image, error) {
+	if t.cache.TTL() > 0 {
+		fi, err := os.Stat(fileName)
+		if err != nil {
+			return nil, err
+		}
+
+		mtime := fi.ModTime()
+		if time.Since(mtime) > t.cache.TTL() {
+			return nil, errTileNotFound
+		}
+	}
+
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
