@@ -126,6 +126,11 @@ func (t *TileFetcher) download(url string) ([]byte, error) {
 	case http.StatusNotFound:
 		return nil, errTileNotFound
 
+	case http.StatusTooManyRequests:
+		//TODO: can be infinity loop
+		time.Sleep(1 * time.Second)
+		return t.download(url)
+
 	default:
 		return nil, fmt.Errorf("GET %s: %s", url, resp.Status)
 	}
